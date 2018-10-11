@@ -6,7 +6,7 @@ class PayStack extends Component {
 	constructor(props) {
 		super(props);
 		this.state = {
-			text: this.props.text || "Make Payment",
+			text: this.props.text || "Make Payment 2000",
 			class: this.props.class || "",
 			metadata: this.props.metadata || {},
 			currency: this.props.currency || "NGN",
@@ -15,11 +15,20 @@ class PayStack extends Component {
 			subaccount: this.props.subaccount || "",
 			transaction_charge: this.props.transaction_charge || 0,
 			bearer: this.props.bearer || "",
-			disabled: this.props.disabled || false
+			disabled: this.props.disabled || false,
+			directInitialization: this.props.directInitialization || true,
 		}
 	}
 
-
+	static getDerivedStateFromProps(nextProps, prevState) {
+        if (nextProps.disabled !== prevState.disabled) {
+			return {
+				disabled: nextProps.disabled, 
+				directInitialization: nextProps.directInitialization};
+        }
+        // Return null to indicate no change to state.
+        return null;
+    }
 	componentDidMount() {
 		if(this.props.embed){
 			this.payWithPaystack()
@@ -27,6 +36,7 @@ class PayStack extends Component {
 	}
 
 	payWithPaystack = () => {
+	
 		let paystackOptions = {
 			key: this.props.paystackkey,
 			email: this.props.email,
@@ -46,16 +56,52 @@ class PayStack extends Component {
 			transaction_charge: this.state.transaction_charge,
 			bearer: this.state.bearer
 		}
+	
 		if (this.props.embed) {
 			paystackOptions.container = "paystackEmbedContainer"
 		}
 		const handler = window.PaystackPop.setup(paystackOptions);
-		if (!this.props.embed) {
-			handler.openIframe();
+		if (this.state.directInitialization)
+		{
+			if (!this.props.embed) {
+				//console.log("am opening IFrame");
+				handler.openIframe();
+			}
 		}
+		else
+		{
+			this.props.beforInitialization((response) => {
+				if (response === undefined && response === null)
+				{
+					return;
+				}
+				if (response.allowPayment === true)
+				{
+					if (!this.props.embed) {
+						handler.openIframe();
+					}
+					else
+					{
+						return;
+					}
+				}
+				else
+				{
+					return;
+				}
+			});
+		}
+		
 	}
 
 	render() {
+
+		let opacity = 1;
+		if (this.state.disabled)
+		{
+			opacity = 0.5;
+		}
+
 		return this.props.embed ?
 			(
 				<div id="paystackEmbedContainer"></div>
@@ -63,7 +109,7 @@ class PayStack extends Component {
 			:
 			(
 				<span>
-          <button className={this.state.class} onClick={this.payWithPaystack} disabled={this.state.disabled}>
+          <button className={this.state.class} onClick={this.payWithPaystack} disabled={this.state.disabled} style={{opacity: opacity}}>
             {this.state.text}
           </button>
         </span>
@@ -87,6 +133,8 @@ PayStack.propTypes = {
 	amount: PropTypes.number.isRequired, //in kobo
 	paystackkey: PropTypes.string.isRequired,
 	callback: PropTypes.func.isRequired,
+	beforInitialization: PropTypes.func,
+	directInitialization: PropTypes.bool,
 	close: PropTypes.func.isRequired,
 	disabled: PropTypes.bool
 }
