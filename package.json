@@ -6,7 +6,10 @@
   "scripts": {
     "test": "mocha --reporter spec test/testSetup.js \"test/**/*.spec.js\"",
     "prepublish": "babel ./src --out-dir ./lib --source-maps --presets es2015,react,stage-2",
-    "build": "babel src -d lib2"
+    "minify": "babel ./src --out-file ./distribution/paystack.min.js --source-maps --presets es2015,react,stage-2",
+    "build": "babel src -d distribution",
+    "fullbuild": "yarn build && yarn minify && yarn prepublish"
+
   },
   "repository": {
     "type": "git",

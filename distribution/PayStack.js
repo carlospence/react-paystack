@@ -160,5 +160,3 @@ PayStack.propTypes = {
 };
 
 exports.default = PayStack;
-
-//# sourceMappingURL=paystack.min.js.map

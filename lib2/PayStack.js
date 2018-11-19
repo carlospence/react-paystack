@@ -31,7 +31,6 @@ var PayStack = function (_Component) {
 		var _this = _possibleConstructorReturn(this, (PayStack.__proto__ || Object.getPrototypeOf(PayStack)).call(this, props));
 
 		_this.payWithPaystack = function () {
-
 			var paystackOptions = {
 				key: _this.props.paystackkey,
 				email: _this.props.email,
@@ -44,6 +43,9 @@ var PayStack = function (_Component) {
 				onClose: function onClose() {
 					_this.props.close();
 				},
+				onClick: function onClick(response) {
+					_this.props.onClick(response);
+				},
 				currency: _this.state.currency,
 				plan: _this.state.plan,
 				quantity: _this.state.quantity,
@@ -51,36 +53,17 @@ var PayStack = function (_Component) {
 				transaction_charge: _this.state.transaction_charge,
 				bearer: _this.state.bearer
 			};
-
 			if (_this.props.embed) {
 				paystackOptions.container = "paystackEmbedContainer";
 			}
 			var handler = window.PaystackPop.setup(paystackOptions);
-			if (_this.state.directInitialization) {
-				if (!_this.props.embed) {
-					//console.log("am opening IFrame");
-					handler.openIframe();
-				}
-			} else {
-				_this.props.beforInitialization(function (response) {
-					if (response === undefined && response === null) {
-						return;
-					}
-					if (response.allowPayment === true) {
-						if (!_this.props.embed) {
-							handler.openIframe();
-						} else {
-							return;
-						}
-					} else {
-						return;
-					}
-				});
+			if (!_this.props.embed) {
+				handler.openIframe();
 			}
 		};
 
 		_this.state = {
-			text: _this.props.text || "Make Payment 2000",
+			text: _this.props.text || "Make Payment",
 			class: _this.props.class || "",
 			metadata: _this.props.metadata || {},
 			currency: _this.props.currency || "NGN",
@@ -89,8 +72,7 @@ var PayStack = function (_Component) {
 			subaccount: _this.props.subaccount || "",
 			transaction_charge: _this.props.transaction_charge || 0,
 			bearer: _this.props.bearer || "",
-			disabled: _this.props.disabled || false,
-			directInitialization: _this.props.directInitialization || true
+			disabled: _this.props.disabled || false
 		};
 		return _this;
 	}
@@ -105,32 +87,15 @@ var PayStack = function (_Component) {
 	}, {
 		key: 'render',
 		value: function render() {
-
-			var opacity = 1;
-			if (this.state.disabled) {
-				opacity = 0.5;
-			}
-
 			return this.props.embed ? _react2.default.createElement('div', { id: 'paystackEmbedContainer' }) : _react2.default.createElement(
 				'span',
 				null,
 				_react2.default.createElement(
 					'button',
-					{ className: this.state.class, onClick: this.payWithPaystack, disabled: this.state.disabled, style: { opacity: opacity } },
+					{ className: this.state.class, onClick: this.payWithPaystack, disabled: this.state.disabled },
 					this.state.text
 				)
 			);
-		}
-	}], [{
-		key: 'getDerivedStateFromProps',
-		value: function getDerivedStateFromProps(nextProps, prevState) {
-			if (nextProps.disabled !== prevState.disabled) {
-				return {
-					disabled: nextProps.disabled,
-					directInitialization: nextProps.directInitialization };
-			}
-			// Return null to indicate no change to state.
-			return null;
 		}
 	}]);
 
@@ -153,12 +118,9 @@ PayStack.propTypes = {
 	amount: _propTypes2.default.number.isRequired, //in kobo
 	paystackkey: _propTypes2.default.string.isRequired,
 	callback: _propTypes2.default.func.isRequired,
-	beforInitialization: _propTypes2.default.func,
-	directInitialization: _propTypes2.default.bool,
+	onClick: _propTypes2.default.func.isRequired,
 	close: _propTypes2.default.func.isRequired,
 	disabled: _propTypes2.default.bool
 };
 
 exports.default = PayStack;
-
-//# sourceMappingURL=paystack.min.js.map
